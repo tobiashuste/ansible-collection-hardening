@@ -83,6 +83,38 @@
     - ssh_pam_support | bool
     - not (ssh_print_pam_motd | bool)
 
+- name: Enable dynamic MOTD nouodate
+  pamd:
+    name: sshd
+    type: session
+    control: optional
+    module_path: pam_mail.so
+    new_type: session
+    new_control: optional
+    new_module_path: pam_motd.so
+    module_arguments: 'noupdate'
+    state: before
+    backup: yes
+  when: not (ssh_server_hardening | bool) or
+        not (ssh_pam_support | bool) or
+        ssh_print_pam_motd | bool
+
+- name: Enable dynamic MOTD noupdate
+  pamd:
+    name: sshd
+    type: session
+    control: optional
+    module_path: pam_motd.so
+    new_type: session
+    new_control: optional
+    new_module_path: pam_motd.so
+    module_arguments: 'motd=/run/motd.dynamic'
+    state: before
+    backup: yes
+  when: not (ssh_server_hardening | bool) or
+        not (ssh_pam_support | bool) or
+        ssh_print_pam_motd | bool
+
 - name: create ssh_config and set permissions to root/644
   template:
     src: 'openssh.conf.j2'
